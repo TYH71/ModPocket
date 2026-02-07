@@ -38,10 +38,9 @@ def stylize_timetable(source_image: bytes, prompt: str, aspect_ratio: str = "9:1
         
         logger.info(f"Generating image with Imagen from text prompt ({len(prompt)} characters)")
         
-        # Try multiple Imagen model options
+        # Try only Imagen 4.0 Ultra as requested
         models_to_try = [
             "imagen-4.0-ultra-generate-001",
-            "imagen-3.0-generate-001",  # Imagen 3.0 fallback
         ]
         
         last_error = None
