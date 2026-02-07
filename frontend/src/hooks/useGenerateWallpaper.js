@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 
-// API configuration - update this with your backend URL
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+// Backend API endpoint
+const API_URL = 'https://generate-wallpaper-bj6vohqe7a-as.a.run.app';
 
 /**
  * Custom hook for generating wallpapers via the backend API
@@ -16,7 +16,7 @@ export const useGenerateWallpaper = () => {
      * Generate a wallpaper
      * @param {string} nusmodsUrl - The NUSMods share URL
      * @param {Object} options - Customization options
-     * @param {string} options.aspectRatio - Device/aspect ratio ID
+     * @param {string} options.aspectRatio - Aspect ratio string (e.g., "9:19.5")
      * @param {string} options.designStyle - Design style ID
      * @param {string} options.theme - 'light' or 'dark'
      */
@@ -26,10 +26,10 @@ export const useGenerateWallpaper = () => {
         setImageUrl(null);
         setMetadata(null);
 
-        const { aspectRatio = 'iphone-14-pro', designStyle = 'minimalist', theme = 'dark' } = options;
+        const { aspectRatio = '9:19.5', designStyle = 'minimalist', theme = 'dark' } = options;
 
         try {
-            const response = await fetch(`${API_BASE_URL}/api/generate`, {
+            const response = await fetch(API_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -48,14 +48,17 @@ export const useGenerateWallpaper = () => {
                 throw new Error(data.error || 'Failed to generate wallpaper');
             }
 
-            setImageUrl(data.image_url);
+            // Convert base64 to data URL for image display
+            const imageDataUrl = `data:image/png;base64,${data.image_base64}`;
+
+            setImageUrl(imageDataUrl);
             setMetadata({
-                ...data.metadata,
+                modules: data.modules || [],
                 aspectRatio,
                 designStyle,
                 theme,
             });
-            return { success: true, imageUrl: data.image_url };
+            return { success: true, imageUrl: imageDataUrl };
         } catch (err) {
             const errorMessage = err.message === 'Failed to fetch'
                 ? 'Unable to connect to the server. Please check your internet connection.'

@@ -3,12 +3,12 @@ import { Sparkles, ArrowRight, Link2, Loader2, Download, RotateCcw, ImageIcon, A
 import { validateNusmodsUrl, extractModules } from './utils/validateNusmodsUrl';
 import { useGenerateWallpaper } from './hooks/useGenerateWallpaper';
 
-// Aspect ratio options
+// Aspect ratio options - using ratio format for backend
 const ASPECT_RATIOS = [
-    { id: 'iphone-14-pro', label: 'iPhone 14/15 Pro', value: '1179x2556' },
-    { id: 'iphone-14-pro-max', label: 'iPhone Pro Max', value: '1290x2796' },
-    { id: 'iphone-se', label: 'iPhone SE', value: '750x1334' },
-    { id: 'android-1080p', label: 'Android (1080p)', value: '1080x2400' },
+    { id: '9:19.5', label: 'iPhone 14/15 Pro', value: '9:19.5' },
+    { id: '9:21', label: 'iPhone Pro Max', value: '9:21' },
+    { id: '9:16', label: 'iPhone SE / Standard', value: '9:16' },
+    { id: '9:20', label: 'Android (1080p)', value: '9:20' },
 ];
 
 // Design style options with preview classes
@@ -147,7 +147,7 @@ const PhoneMockup = ({ imageUrl, loading, placeholder }) => (
 function App() {
     const [url, setUrl] = useState('');
     const [validationError, setValidationError] = useState(null);
-    const [aspectRatio, setAspectRatio] = useState('iphone-14-pro');
+    const [aspectRatio, setAspectRatio] = useState('9:19.5');
     const [designStyle, setDesignStyle] = useState('minimalist');
     const [theme, setTheme] = useState('dark');
     const { generate, reset, loading, error, imageUrl, metadata } = useGenerateWallpaper();
