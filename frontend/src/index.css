@@ -1,0 +1,250 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* shadcn-inspired CSS variables */
+:root {
+  --background: 0 0% 3.9%;
+  --foreground: 0 0% 98%;
+  --card: 0 0% 3.9%;
+  --card-foreground: 0 0% 98%;
+  --popover: 0 0% 3.9%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 24 100% 50%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 0 0% 14.9%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 0 0% 14.9%;
+  --muted-foreground: 0 0% 63.9%;
+  --accent: 0 0% 14.9%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 0 0% 14.9%;
+  --input: 0 0% 14.9%;
+  --ring: 24 100% 50%;
+  --radius: 0.5rem;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  border-color: hsl(var(--border));
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Gradient orb background */
+.bg-gradient-orb {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 1000px;
+  height: 600px;
+  background: radial-gradient(ellipse at center top, rgba(251, 146, 60, 0.15) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Button styles */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: var(--radius);
+  background: hsl(var(--foreground));
+  color: hsl(var(--background));
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: var(--radius);
+  background: transparent;
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: hsl(var(--accent));
+}
+
+.btn-orange {
+  background: hsl(var(--primary));
+  color: white;
+}
+
+.btn-orange:hover {
+  background: hsl(24, 100%, 45%);
+}
+
+/* Input styles */
+.input-shadcn {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  background: hsl(var(--secondary));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  color: hsl(var(--foreground));
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.input-shadcn::placeholder {
+  color: hsl(var(--muted-foreground));
+}
+
+.input-shadcn:focus {
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 2px hsla(24, 100%, 50%, 0.2);
+}
+
+/* Badge/Pill */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 9999px;
+  border: 1px solid hsl(var(--border));
+  background: hsla(0, 0%, 100%, 0.03);
+  color: hsl(var(--muted-foreground));
+}
+
+.badge-highlight {
+  color: hsl(var(--primary));
+}
+
+/* Card */
+.card {
+  background: hsla(0, 0%, 100%, 0.02);
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 2);
+  overflow: hidden;
+}
+
+/* Phone mockup */
+.phone-frame {
+  position: relative;
+  width: 220px;
+  height: 450px;
+  background: linear-gradient(145deg, #1a1a1a 0%, #0a0a0a 100%);
+  border-radius: 40px;
+  padding: 8px;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.phone-screen {
+  width: 100%;
+  height: 100%;
+  background: #0a0a0a;
+  border-radius: 32px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.phone-notch {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 24px;
+  background: #0a0a0a;
+  border-radius: 12px;
+  z-index: 10;
+}
+
+.phone-home-bar {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+}
+
+/* Animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease forwards;
+}
+
+.animate-fade-in-delay-1 {
+  animation: fade-in 0.5s ease 0.1s forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-delay-2 {
+  animation: fade-in 0.5s ease 0.2s forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-delay-3 {
+  animation: fade-in 0.5s ease 0.3s forwards;
+  opacity: 0;
+}
+
+/* Spinner */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
