@@ -1,170 +1,158 @@
 """
-ModPocket Firebase Functions - NUSMods Timetable Wallpaper Generator
+ModPocket Firebase Functions - Timetable Wallpaper Generator
 
-Generates NUSMods timetables as stylized phone wallpapers using
-Imagen text-to-image generation.
+Generates timetables as stylized phone wallpapers using Imagen.
+Uses static timetable data from assets/timetable.txt.
 """
 
+import os
 import json
-import time
 import logging
 import traceback
 import firebase_admin
 from firebase_functions import https_fn
 from firebase_functions.options import set_global_options, CorsOptions
+from typing import Dict, List, TypedDict
 
-# Set up logging
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-
-from nusmods_parser import parse_nusmods_url, enrich_schedule_with_api_data
 from prompt_builder import build_prompt, DesignStyleType, ThemeType
 from image_generator import generate_image_base64
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
-# Initialize Firebase
 firebase_admin.initialize_app()
-
-# Global function options
 set_global_options(max_instances=10)
 
-# Valid design styles
 VALID_STYLES = ("minimalist", "gradient", "neon", "pastel", "glass", "retro", "kawaii")
 VALID_THEMES = ("light", "dark")
-
-# Core aspect ratio used for all generations (for consistency)
 CORE_ASPECT_RATIO = "9:16"
+DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+
+
+class EnrichedLesson(TypedDict):
+    day: str
+    startTime: str
+    endTime: str
+    venue: str
+    lessonType: str
+    classNo: str
+
+
+def load_static_timetable() -> Dict[str, List[EnrichedLesson]]:
+    """
+    Load timetable from assets/timetable.txt.
+    Format per entry (3 lines + blank):
+        MA1521 Lecture
+        LT32
+        Monday 0800-1000
+    """
+    timetable_path = os.path.join(os.path.dirname(__file__), "assets", "timetable.txt")
+    
+    with open(timetable_path, "r") as f:
+        content = f.read().strip()
+    
+    entries = content.split("\n\n")
+    schedule: Dict[str, List[EnrichedLesson]] = {}
+    
+    for entry in entries:
+        lines = entry.strip().split("\n")
+        if len(lines) < 3:
+            continue
+        
+        # Parse: "MA1521 Lecture" -> module="MA1521", type="Lecture"
+        first_line_parts = lines[0].split(" ", 1)
+        module_code = first_line_parts[0]
+        lesson_type = first_line_parts[1] if len(first_line_parts) > 1 else "Class"
+        
+        venue = lines[1]
+        
+        # Parse: "Monday 0800-1000" -> day="Monday", time="0800-1000"
+        day_time_parts = lines[2].split(" ")
+        day = day_time_parts[0]
+        time_range = day_time_parts[1] if len(day_time_parts) > 1 else "0000-0000"
+        start_time, end_time = time_range.split("-")
+        
+        lesson = EnrichedLesson(
+            day=day,
+            startTime=start_time,
+            endTime=end_time,
+            venue=venue,
+            lessonType=lesson_type,
+            classNo="1"
+        )
+        
+        if module_code not in schedule:
+            schedule[module_code] = []
+        schedule[module_code].append(lesson)
+        
+        logger.info(f"Loaded: {module_code} {lesson_type} on {day} {start_time}-{end_time} @ {venue}")
+    
+    return schedule
 
 
 @https_fn.on_request(
     region="asia-southeast1",
     memory=512,
     timeout_sec=120,
-    cors=CorsOptions(
-        cors_origins="*",
-        cors_methods=["POST", "OPTIONS"]
-    )
+    cors=CorsOptions(cors_origins="*", cors_methods=["POST", "OPTIONS"])
 )
 def generate_wallpaper(req: https_fn.Request) -> https_fn.Response:
     """
-    Generate a stylized timetable wallpaper from a NUSMods URL.
-    
-    Pipeline:
-    1. Parse NUSMods share URL to extract schedule data
-    2. Enrich schedule with day/time/venue info from NUSMods API
-    3. Build comprehensive text-to-image prompt with enriched schedule
-    4. Generate wallpaper image using Imagen 04 Ultra
-    5. Return base64-encoded wallpaper image
+    Generate a stylized timetable wallpaper.
+    Uses static timetable from assets/timetable.txt.
     """
-    # Only accept POST requests
     if req.method != "POST":
         return https_fn.Response(
             json.dumps({"error": "Method not allowed. Use POST."}),
-            status=405,
-            content_type="application/json"
+            status=405, content_type="application/json"
         )
     
-    # Parse JSON body
     try:
         body = req.get_json(force=True)
     except Exception:
-        return https_fn.Response(
-            json.dumps({"error": "Invalid JSON body"}),
-            status=400,
-            content_type="application/json"
-        )
+        body = {}
     
-    # Extract and validate fields
-    nusmods_url = body.get("nusmods_url")
-    design_style: DesignStyleType = body.get("design_style", "kawaii").lower()
+    design_style: DesignStyleType = body.get("design_style", "minimalist").lower()
     theme: ThemeType = body.get("theme", "light").lower()
-    # Accept any aspect_ratio from user, but use core ratio for generation
-    aspect_ratio = body.get("aspect_ratio", CORE_ASPECT_RATIO)
-    
-    if not nusmods_url:
-        return https_fn.Response(
-            json.dumps({"error": "Missing required field: nusmods_url"}),
-            status=400,
-            content_type="application/json"
-        )
     
     if design_style not in VALID_STYLES:
         return https_fn.Response(
-            json.dumps({
-                "error": f"Invalid design_style. Use one of: {', '.join(VALID_STYLES)}"
-            }),
-            status=400,
-            content_type="application/json"
+            json.dumps({"error": f"Invalid design_style. Use one of: {', '.join(VALID_STYLES)}"}),
+            status=400, content_type="application/json"
         )
     
     if theme not in VALID_THEMES:
         return https_fn.Response(
             json.dumps({"error": "Invalid theme. Use 'light' or 'dark'."}),
-            status=400,
-            content_type="application/json"
+            status=400, content_type="application/json"
         )
     
     try:
-        logger.info(f"Processing request: style={design_style}, theme={theme}, aspect_ratio={aspect_ratio}")
+        logger.info(f"Generating wallpaper: style={design_style}, theme={theme}")
         
-        # Step 1: Parse NUSMods URL
-        logger.info("Step 1: Parsing NUSMods URL")
-        parsed = parse_nusmods_url(nusmods_url)
-        module_codes = list(parsed["modules"].keys())
-        logger.info(f"Parsed {len(module_codes)} modules: {module_codes}")
+        # Step 1: Load static timetable
+        schedule = load_static_timetable()
+        module_codes = list(schedule.keys())
+        total_lessons = sum(len(l) for l in schedule.values())
+        logger.info(f"Loaded {total_lessons} lessons for {len(module_codes)} modules")
         
-        if not module_codes:
-            return https_fn.Response(
-                json.dumps({"error": "No modules found in the provided URL"}),
-                status=400,
-                content_type="application/json"
-            )
+        # Step 2: Build prompt
+        prompt = build_prompt(design_style, theme, CORE_ASPECT_RATIO, schedule)
+        logger.info(f"Prompt built: {len(prompt)} chars")
         
-        # Step 2: Enrich schedule data with NUSMods API
-        logger.info("Step 2: Fetching schedule data from NUSMods API")
-        enriched_schedule = enrich_schedule_with_api_data(parsed)
-        logger.info(f"Enriched schedule with {sum(len(lessons) for lessons in enriched_schedule.values())} lessons")
+        # Step 3: Generate image
+        image_base64 = generate_image_base64(b"", prompt, CORE_ASPECT_RATIO)
+        logger.info(f"Image generated: {len(image_base64)} base64 chars")
         
-        # Step 3: Build text-to-image prompt with enriched schedule data
-        logger.info("Step 3: Building text-to-image prompt with schedule data")
-        # Always use core aspect ratio for consistency
-        style_prompt = build_prompt(design_style, theme, CORE_ASPECT_RATIO, enriched_schedule)
-        logger.info(f"Prompt built: {len(style_prompt)} characters")
-        
-        # Step 4: Generate image with Imagen (no source image needed)
-        logger.info(f"Step 4: Generating wallpaper with Imagen (using core ratio: {CORE_ASPECT_RATIO})")
-        # Pass empty bytes for source_image (kept for API compatibility but not used)
-        source_image = b""
-        image_base64 = generate_image_base64(source_image, style_prompt, CORE_ASPECT_RATIO)
-        logger.info(f"Image generation complete: {len(image_base64)} base64 characters")
-        
-        # Return success response
-        logger.info("Request completed successfully")
         return https_fn.Response(
-            json.dumps({
-                "success": True,
-                "image_base64": image_base64,
-                "modules": module_codes
-            }),
-            status=200,
-            content_type="application/json"
+            json.dumps({"success": True, "image_base64": image_base64, "modules": module_codes}),
+            status=200, content_type="application/json"
         )
         
-    except ValueError as e:
-        logger.error(f"ValueError: {str(e)}")
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=400,
-            content_type="application/json"
-        )
     except Exception as e:
-        logger.error(f"Unexpected error: {type(e).__name__}: {str(e)}")
-        logger.error(f"Traceback: {traceback.format_exc()}")
+        logger.error(f"Error: {type(e).__name__}: {str(e)}")
+        logger.error(traceback.format_exc())
         return https_fn.Response(
-            json.dumps({
-                "error": f"Internal error: {type(e).__name__}: {str(e)}",
-                "type": type(e).__name__
-            }),
-            status=500,
-            content_type="application/json"
+            json.dumps({"error": f"Internal error: {str(e)}"}),
+            status=500, content_type="application/json"
         )

@@ -1,0 +1,35 @@
+MA1521 Lecture
+LT32
+Monday 0800-1000
+
+BT2102 Lecture
+I3-LT38
+Monday 1000-1200
+
+CS2040 Lecture
+E-Learning
+Monday 1600-1800
+
+CS2040 Tutorial
+BIZ2-0303
+Tuesday 1300-1400
+
+BT2102 Lab
+COM1-0208
+Wednesday 1000-1200
+
+CS2040 Lecture
+E-Learning
+Wednesday 1300-1400
+
+MA1521 Lecture
+LT32
+Thursday 0800-1000
+
+UTW1001T Sectional Teaching
+RC4-SR6
+Thursday 1200-1500
+
+CS2040 Lab
+COM1-B112
+Friday 1400-1600
