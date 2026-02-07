@@ -10,8 +10,8 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="https://github.com/chaipinzheng/ModPocket">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
+  <a href="https://github.com/Ducksss/ModPocket">
+    <img src="images/logo.png" alt="Logo" width="150" height="150">
   </a>
 
   <h3 align="center">📱 ModPocket</h3>
@@ -24,9 +24,9 @@
     <br />
     <a href="#demo">View Demo</a>
     ·
-    <a href="https://github.com/chaipinzheng/ModPocket/issues/new?labels=bug">Report Bug</a>
+    <a href="https://github.com/Ducksss/ModPocket/issues/new?labels=bug">Report Bug</a>
     ·
-    <a href="https://github.com/chaipinzheng/ModPocket/issues/new?labels=enhancement">Request Feature</a>
+    <a href="https://github.com/Ducksss/ModPocket/issues/new?labels=enhancement">Request Feature</a>
   </p>
 </div>
 
@@ -68,6 +68,27 @@
 </div>
 
 **ModPocket** is a web application that transforms NUSMods timetable links into beautiful, customizable iPhone wallpapers. Built for NUS students who want to keep their schedule accessible at a glance.
+
+### 😩 The Problem
+
+As NUS students, we've all been there:
+- **Missed a class** because we forgot to check NUSMods that morning
+- **Showed up to the wrong venue** because we couldn't remember if it was LT27 or LT19
+- **Opened NUSMods 10+ times a day** just to check our next class
+- **Panicked before exams** trying to remember our schedule
+
+NUSMods is great—but it requires you to *actively* open the app. What if your schedule was **already there** every time you glanced at your phone?
+
+### 📱 Why Mobile-First?
+
+We spend **4+ hours daily** on our phones. Our lock screen is the first thing we see when we wake up and the last thing before we sleep. Yet, most students are still:
+- Fumbling through apps to check their schedule
+- Screenshotting their NUSMods timetable (ugly and outdated)
+- Missing classes because "I forgot to check"
+
+**ModPocket makes your timetable impossible to miss.** It's not just a wallpaper—it's a **lifestyle upgrade** for busy students.
+
+> *"The best interface is no interface."* — Our phones are already in our hands. Why not make the lock screen useful?
 
 ### ✨ Key Features
 
@@ -152,7 +173,7 @@ Follow these steps to get a local copy up and running.
 
 1. **Clone the repository**
    ```sh
-   git clone https://github.com/chaipinzheng/ModPocket.git
+   git clone https://github.com/Ducksss/ModPocket.git
    cd ModPocket
    ```
 
@@ -188,7 +209,7 @@ Follow these steps to get a local copy up and running.
 ### Demo
 
 <div align="center">
-  <img src="images/demo.gif" alt="ModPocket Demo" width="600">
+  <img src="images/demo.webp" alt="ModPocket Demo" width="600">
 </div>
 
 ### Design Styles Preview
@@ -261,7 +282,7 @@ POST https://generate-wallpaper-bj6vohqe7a-as.a.run.app
 - [ ] Widget support for iOS
 - [ ] Gallery of generated wallpapers
 
-See the [open issues](https://github.com/chaipinzheng/ModPocket/issues) for a full list of proposed features and known issues.
+See the [open issues](https://github.com/Ducksss/ModPocket/issues) for a full list of proposed features and known issues.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -285,7 +306,7 @@ Contributions are what make the open source community such an amazing place to l
 <!-- LICENSE -->
 ## License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+Distributed under the CC0 1.0 Universal License. See `LICENSE` for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -296,7 +317,11 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 **ModPocket Team** - Built with 🧡 at NUS
 
-Project Link: [https://github.com/chaipinzheng/ModPocket](https://github.com/chaipinzheng/ModPocket)
+* [Chai Pin Zheng](https://www.linkedin.com/in/chai-pin-zheng)
+* [Yu Hoe Tan](https://www.linkedin.com/in/yu-hoe-tan/)
+* [Anton Ang](https://www.linkedin.com/in/anton-ang/)
+
+Project Link: [https://github.com/Ducksss/ModPocket](https://github.com/Ducksss/ModPocket)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -320,16 +345,16 @@ Project Link: [https://github.com/chaipinzheng/ModPocket](https://github.com/cha
 </div>
 
 <!-- MARKDOWN LINKS & IMAGES -->
-[contributors-shield]: https://img.shields.io/github/contributors/chaipinzheng/ModPocket.svg?style=for-the-badge
-[contributors-url]: https://github.com/chaipinzheng/ModPocket/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/chaipinzheng/ModPocket.svg?style=for-the-badge
-[forks-url]: https://github.com/chaipinzheng/ModPocket/network/members
-[stars-shield]: https://img.shields.io/github/stars/chaipinzheng/ModPocket.svg?style=for-the-badge
-[stars-url]: https://github.com/chaipinzheng/ModPocket/stargazers
-[issues-shield]: https://img.shields.io/github/issues/chaipinzheng/ModPocket.svg?style=for-the-badge
-[issues-url]: https://github.com/chaipinzheng/ModPocket/issues
-[license-shield]: https://img.shields.io/github/license/chaipinzheng/ModPocket.svg?style=for-the-badge
-[license-url]: https://github.com/chaipinzheng/ModPocket/blob/main/LICENSE
+[contributors-shield]: https://img.shields.io/github/contributors/Ducksss/ModPocket.svg?style=for-the-badge
+[contributors-url]: https://github.com/Ducksss/ModPocket/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/Ducksss/ModPocket.svg?style=for-the-badge
+[forks-url]: https://github.com/Ducksss/ModPocket/network/members
+[stars-shield]: https://img.shields.io/github/stars/Ducksss/ModPocket.svg?style=for-the-badge
+[stars-url]: https://github.com/Ducksss/ModPocket/stargazers
+[issues-shield]: https://img.shields.io/github/issues/Ducksss/ModPocket.svg?style=for-the-badge
+[issues-url]: https://github.com/Ducksss/ModPocket/issues
+[license-shield]: https://img.shields.io/github/license/Ducksss/ModPocket.svg?style=for-the-badge
+[license-url]: https://github.com/Ducksss/ModPocket/blob/main/LICENSE
 
 [React.js]: https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB
 [React-url]: https://reactjs.org/

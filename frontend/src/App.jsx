@@ -192,7 +192,7 @@ function App() {
                     <span className="font-bold text-lg tracking-tight">ModPocket</span>
                 </div>
                 <a
-                    href="https://github.com/your-repo"
+                    href="https://github.com/Ducksss/ModPocket"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn-secondary text-sm"
