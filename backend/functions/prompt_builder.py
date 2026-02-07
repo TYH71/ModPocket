@@ -1,210 +1,432 @@
 """
 Prompt Builder for Timetable Wallpaper Generation
 
-Constructs prompts for Imagen 3 to generate timetable wallpapers
-with different design styles and themes.
+Constructs text-to-image prompts for Imagen to generate NUSMods timetable
+phone wallpapers from scratch.
 """
 
-from typing import Literal
+from typing import Literal, Dict, List, Any, Optional
 
-DesignStyleType = Literal["minimal", "gradient", "neon", "pastel", "glass", "retro"]
+DesignStyleType = Literal[
+    "minimalist", "gradient", "neon", "pastel", "glass", "retro", "kawaii"
+]
 ThemeType = Literal["light", "dark"]
 
 
-# Style descriptions for each design style
+# Base generation prompt - tells Imagen what image to create
+GENERATION_PROMPT_TEMPLATE = """Create a clean, READABLE university timetable wallpaper ({aspect_ratio} aspect ratio, portrait orientation).
+
+SCHEDULE DATA TO DISPLAY:
+{schedule_data}
+
+YOUR TASK:
+Generate a timetable wallpaper that displays this exact schedule in a flat, visually beautiful layout. THIS IS WALLPAPER ONLY - NO DEVICE FRAME, NO PHONE MOCKUP.
+
+CRITICAL REQUIREMENTS (in order of priority):
+
+1. WALLPAPER CONTENT ONLY:
+   - GENERATE ONLY THE TIMETABLE/SCHEDULE ITSELF
+   - NO iPhone frame, NO phone border, NO device bezel
+   - NO status bar, NO notch, NO home indicator
+   - NO phone mockup or device frame of any kind
+   - Just the raw timetable/wallpaper content filling the entire image
+   - Portrait orientation ({aspect_ratio})
+
+2. READABILITY FIRST:
+   - Use LARGE, LEGIBLE text (minimum 14pt for body text, 18pt+ for course codes)
+   - High contrast between text and background
+   - Clear visual hierarchy (course codes most prominent, then times, then venues)
+   - Generous line spacing between entries
+
+3. TIMETABLE LAYOUT (NO CARDS):
+   - Design as a FLAT timetable grid/list layout
+   - Organize by days of the week (Monday through Friday columns or sections)
+   - Show time slots running vertically
+   - Each class entry should be a simple colored block/rectangle
+   - Use consistent color coding for each course across all sessions
+   - Include day headers (Mon, Tue, Wed, Thu, Fri)
+   - Include time markers on the side (08:00, 10:00, 12:00, etc.)
+
+4. VISUAL STYLE:
+   - Apply the {style_name} aesthetic described below
+   - NO card UI elements (no shadows, no borders, no rounded corners on cards)
+   - Flat design with direct text on background
+   - Use color blocks to distinguish different courses
+   - Clean, minimal, functional design
+
+5. DISPLAY ALL SCHEDULE DATA:
+   - Show ALL courses, times, days, lesson types, and venues listed above
+   - Format each entry as: "[Course Code] [Lesson Type] @ [Venue]"
+   - Place entries in their corresponding day/time slots
+   - Use consistent colors for each course
+   - Leave margins on all sides (at least 5% of width/height)
+
+STYLE SPECIFICATIONS:
+{style_description}
+
+OUTPUT FORMAT:
+- Portrait orientation
+- Grid/timetable layout (columns for days, rows for time slots)
+- Maximum visual clarity and readability
+- Beautiful design that people want to use as wallpaper
+- All schedule information clearly displayed in timetable format
+- Professional, polished appearance
+- NO card UI, NO shadows, NO rounded card containers
+- ABSOLUTELY NO DEVICE MOCKUP, PHONE FRAME, OR UI CHROME
+
+Remember: This is a TIMETABLE WALLPAPER - just the schedule layout itself, no device frame. Organize by day and time. Make it READABLE first, pretty second. Fill the entire {aspect_ratio} portrait space with pure timetable content.
+"""
+
+
+# Style descriptions optimized for flat timetable wallpaper (NO CARDS)
 STYLE_DESCRIPTIONS = {
-    "minimal": {
+    "minimalist": {
         "light": """
-- Background: Clean white or very light gray with subtle gradient
-- Color palette: Muted pastels or monochromatic grays (2-3 colors maximum)
-- Typography: Clean sans-serif fonts (similar to Inter, SF Pro, or Helvetica)
-- Class blocks: Simple rectangles with thin dark borders or subtle shadows
-- No decorative elements, icons, or illustrations
-- High contrast dark text on light blocks
-- Professional, clean, paper-like appearance
-- Emphasis on negative space and minimalism
+MINIMALIST LIGHT STYLE:
+- Clean white or light gray background (#F8F9FA)
+- Large course code text (20-24pt, bold, dark gray/black) directly on background
+- Simple flat color blocks for each course (muted pastels: pale blue, mint, lavender)
+- Thin grid lines separating days and time slots
+- Clean sans-serif typography throughout
+- Time and venue info in 14-16pt directly on colored blocks
+- NO cards, NO shadows - pure flat design
+- Thin divider lines between time slots and days
+- Professional, clean, paper-like timetable appearance
+- Focus on whitespace and breathing room
 """,
         "dark": """
-- Background: Deep charcoal, dark navy, or near-black
-- Color palette: Muted dark tones with subtle accent colors
-- Typography: Clean sans-serif fonts in white or light gray
-- Class blocks: Dark rectangles with subtle lighter borders or soft glow
-- No decorative elements, icons, or illustrations
-- High contrast light text on dark blocks
-- Sleek, modern, OLED-friendly appearance
-- Emphasis on negative space and minimalism
-"""
+MINIMALIST DARK STYLE:
+- Deep charcoal background (#121212)
+- Large white course codes (20-24pt, bold) directly on background
+- Muted dark color blocks for each class (dark blue, dark green, dark amber)
+- Clean white/light gray text for readability
+- Thin grid lines in dark gray
+- Time and venue info in 14-16pt white text
+- NO cards, NO elevation - flat timetable design
+- OLED-friendly with generous spacing
+- Sleek, modern aesthetic
+- Emphasis on maximum readability
+""",
     },
     "gradient": {
         "light": """
-- Background: Smooth gradient blend of soft pastels (pink to lavender, peach to mint)
-- Color palette: Flowing gradients with harmonious color transitions
-- Typography: Modern sans-serif fonts with subtle gradient fills
-- Class blocks: Rounded rectangles with horizontal or diagonal gradient fills
-- Smooth color transitions between elements
-- Contemporary, elegant, flowing aesthetic
-- Each module has its own unique gradient color scheme
+GRADIENT LIGHT STYLE:
+- Soft gradient background (pink to lavender or peach to mint)
+- Large, bold course codes (22-26pt) with gradient fills directly on background
+- Each class slot has a smooth gradient background matching the course
+- Modern flat design - NO rounded corners on blocks
+- High contrast text with subtle shadows for readability
+- Time and venue in 14-16pt
+- Flowing color transitions for course blocks
+- Thin grid lines for timetable structure
+- Contemporary, elegant timetable aesthetic
+- Generous spacing for touch-friendly layout
 """,
         "dark": """
-- Background: Deep gradient from dark purple to midnight blue or charcoal to deep teal
-- Color palette: Rich, saturated gradients in jewel tones
-- Typography: Clean fonts in white or light colors with subtle glow
-- Class blocks: Rounded rectangles with vibrant gradient fills on dark backgrounds
-- Smooth color transitions with depth
-- Modern, sophisticated night-sky aesthetic
-- Each module has its own unique bold gradient
-"""
+GRADIENT DARK STYLE:
+- Deep gradient background (navy to purple)
+- Large white/cream course codes (22-26pt, bold) directly on blocks
+- Vibrant gradient blocks for each class (magenta-purple, cyan-blue, amber-orange)
+- Soft glow effects around class blocks
+- Rich saturated colors with readable text
+- Time and venue in 14-16pt white text
+- Flat timetable grid optimized for vertical viewing
+- Thin divider lines between slots
+- Sophisticated night aesthetic
+- Each course has unique gradient identity
+""",
     },
     "neon": {
         "light": """
-- Background: White or very light gray with electric accent colors
-- Color palette: Bright neon colors (electric pink, lime green, cyan, yellow)
-- Typography: Bold, geometric fonts with neon-colored text
-- Class blocks: White rectangles with bright neon borders and subtle glow effects
-- Energetic, vibrant, electric aesthetic
-- High contrast with pop of neon colors
-- Modern, youthful, cyberpunk-lite style
+NEON LIGHT STYLE:
+- White or light gray background
+- Large bold course codes (24-28pt) with neon colored text directly on background
+- Bright neon colored blocks for each class (electric pink, lime, cyan, yellow)
+- Thin neon colored grid lines (2-3px)
+- Bold geometric typography for maximum impact
+- Time and venue in 16-18pt
+- Energetic, electric feel with high contrast
+- Each course has unique neon accent color
+- Flat timetable layout with neon grid dividers
+- NO cards - direct neon blocks on white background
+- Touch-friendly spacing between elements
 """,
         "dark": """
-- Background: Pure black or very dark navy
-- Color palette: Glowing neon colors (hot pink, electric blue, lime, orange)
-- Typography: Bold fonts with neon glow effect
-- Class blocks: Dark rectangles with bright glowing neon borders
-- Strong neon glow effects around all elements
-- Cyberpunk aesthetic with OLED-friendly true blacks
-- Each module has its own unique neon color
-- Futuristic, electric, nightclub vibe
-"""
+NEON DARK STYLE:
+- Pure black background (#000000)
+- Large glowing neon course codes (24-28pt) directly on blocks
+- Strong neon glow effects on class blocks (hot pink, electric blue, lime green, orange)
+- High contrast white text on blocks
+- Time and venue in 16-18pt with subtle glow
+- Flat timetable grid layout with glowing dividers
+- Cyberpunk aesthetic with maximum readability
+- OLED-friendly true blacks
+- Each course gets unique neon signature color
+- NO card containers - just glowing blocks in grid
+- Generous spacing for futuristic look
+""",
     },
     "pastel": {
         "light": """
-- Background: Cream, light beige, or soft blush with decorative corner elements
-- Color palette: Soft pastels (baby pink, mint, lavender, peach, sky blue, soft yellow)
-- Typography: Rounded, friendly fonts in darker complementary shades
-- Class blocks: Rounded rectangles with soft pastel fills and gentle shadows
-- Small kawaii-style decorative elements: tiny books, coffee cups, stars, clouds
-- Each module block can have a small cute emoji or icon
+PASTEL LIGHT STYLE:
+- Cream or light blush background (#FFF5F0)
+- Large, friendly course codes (22-26pt, rounded font) directly on blocks
+- Soft pastel blocks for each class (baby pink, mint, lavender, peach, sky blue)
+- Rounded corners on class blocks only (8-12px) - NOT on cards
+- Time and venue in 14-16pt
+- Small cute decorative elements in margins (tiny stars ★, hearts ♡)
+- Flat timetable grid layout with gentle spacing
+- Thin pastel divider lines between slots
 - Warm, cozy, inviting aesthetic
-- Hand-drawn style accents and soft textures
+- Each course gets soft pastel identity
+- Clean grid structure, touch-friendly spacing
 """,
         "dark": """
-- Background: Deep purple, midnight blue, or soft charcoal with stars/sparkles
-- Color palette: Darker pastels and dusty tones (dusty pink, teal, muted lavender)
-- Typography: Rounded, friendly fonts in cream or light colors
-- Class blocks: Rounded rectangles with muted pastel fills and soft glow
-- Small kawaii-style decorative elements: moons, stars, sparkles
-- Cozy, dreamy, nighttime aesthetic
-- Each module has a soft glowing pastel color
-"""
+PASTEL DARK STYLE:
+- Deep purple or midnight blue background (#1A1025) with subtle stars
+- Large cream/white course codes (22-26pt) directly on blocks
+- Muted dark pastel blocks for classes (dusty pink, teal, lavender)
+- Cream/light text for readability
+- Time and venue in 14-16pt
+- Small moon ☾ and star ☆ decorations in margins
+- Flat timetable grid layout
+- Thin divider lines in muted colors
+- Dreamy, nighttime aesthetic
+- Cozy and comfortable vibe
+- NO cards - just colored blocks in grid
+- Generous spacing for relaxed feel
+""",
     },
     "glass": {
         "light": """
-- Background: Soft gradient with frosted glass effect (light blue to pink or white to lavender)
-- Color palette: Translucent whites and soft colors with glass reflections
-- Typography: Clean sans-serif fonts with subtle shadow depth
-- Class blocks: Frosted glass rectangles with white/translucent fill and blur effect
-- Glassmorphism style with backdrop blur appearance
-- Subtle shadows and highlights for 3D depth
-- Modern iOS-inspired aesthetic
-- Light refractions and glass highlights
+GLASSMORPHISM LIGHT STYLE:
+- Soft gradient background (light blue to lavender)
+- Large bold course codes (22-26pt, dark text) directly on glass blocks
+- Frosted glass effect on class blocks (white at 60% opacity with blur)
+- Subtle white borders around blocks for depth
+- Time and venue in 14-16pt through glass effect
+- Light refractions on blocks
+- Flat timetable grid layout with glass separation
+- Thin grid lines for structure
+- iOS/macOS inspired aesthetic
+- Premium, modern feel with excellent readability
+- NO card containers - just glass blocks in grid
 """,
         "dark": """
-- Background: Deep gradient with frosted glass panels (dark purple to black)
-- Color palette: Translucent dark colors with subtle color tints
-- Typography: Clean fonts in white with glass-on-dark effect
-- Class blocks: Dark frosted glass rectangles with subtle transparency
-- Glassmorphism on dark mode with subtle glows
-- Modern, premium, sophisticated aesthetic
-- Each module has subtle colored glass tint
-- Apple-style frosted glass on dark backgrounds
-"""
+GLASSMORPHISM DARK STYLE:
+- Deep gradient background (dark purple to blue)
+- Large white course codes (22-26pt, bold) directly on glass blocks
+- Dark frosted glass blocks with subtle transparency for each class
+- Soft glow effects for depth and readability
+- Time and venue in 14-16pt white text
+- Flat timetable grid with glass block separation
+- Thin glowing divider lines
+- Apple-style glassmorphism
+- Sophisticated, premium dark mode
+- Each block has distinct glass effect
+- NO card UI - just glass blocks in timetable grid
+- Touch-friendly spacing
+""",
     },
     "retro": {
         "light": """
-- Background: Warm cream, off-white, or vintage paper texture
-- Color palette: Retro 70s/80s colors (mustard, burnt orange, olive green, rusty red)
-- Typography: Groovy, rounded retro fonts or classic serif fonts
-- Class blocks: Rectangles with vintage color fills and aged paper texture
-- Retro grid lines or sunburst patterns in background
-- Nostalgic, warm, vintage aesthetic
-- Slight grain or texture overlay for aged look
-- Mid-century modern or 80s Memphis style influences
+RETRO LIGHT STYLE:
+- Warm cream background (#F5F1E8) with subtle paper texture
+- Large bold course codes (24-28pt, retro rounded font) directly on blocks
+- Retro colored blocks for classes (mustard, burnt orange, olive, teal, rusty red)
+- Rounded retro typography throughout
+- Time and venue in 16-18pt
+- 70s/80s inspired palette with high contrast
+- Flat timetable grid with vintage borders
+- Thin colored divider lines
+- Mid-century modern influence
+- Slight vintage aesthetic with modern readability
+- NO cards - just colored blocks in grid
+- Generous spacing for retro chunky look
 """,
         "dark": """
-- Background: Deep brown, vintage navy, or maroon with subtle texture
-- Color palette: Dark retro tones (deep teal, burgundy, forest green, mustard)
-- Typography: Classic serif or retro fonts in cream/gold colors
-- Class blocks: Dark vintage colored rectangles with subtle worn texture
-- Art deco or vintage gothic influences
-- Nostalgic, moody, evening aesthetic
-- Film grain or noise texture overlay
-- Classic poster or vinyl record cover style
-"""
-    }
+RETRO DARK STYLE:
+- Deep brown or dark navy background (#1A0F0A)
+- Large gold/cream course codes (24-28pt, bold retro font) directly on blocks
+- Dark retro colored blocks for classes (deep teal, burgundy, forest green, mustard)
+- Gold/cream text for contrast
+- Time and venue in 16-18pt
+- Art deco influences with geometric patterns
+- Flat timetable grid layout
+- Thin gold divider lines
+- Film noir aesthetic
+- Sophisticated vintage feel
+- NO card containers - just colored blocks in grid
+- Touch-friendly spacing
+""",
+    },
+    "kawaii": {
+        "light": """
+KAWAII LIGHT STYLE:
+- Warm cream or pale pink background (#FFF8F0)
+- Large, cute course codes (24-28pt, rounded bubbly font) directly on blocks
+- Soft pastel blocks for classes (peach, mint, lavender, baby blue, soft yellow)
+- Rounded friendly fonts throughout
+- Time and venue in 16-18pt
+- Small cute decorative elements in margins: tiny stars ★, hearts ♡, sparkles ✨
+- Small emoji icons near course codes (books 📚, coffee ☕, pencil ✏️)
+- Flat timetable grid layout with generous spacing
+- Soft beige grid lines between slots
+- Rounded corners on class blocks only (12-16px)
+- Japanese stationery/bullet journal inspired
+- Planner-style timetable with hand-drawn feel
+- Weekly schedule header at top
+- NO card containers - just colored blocks in grid
+- Touch-friendly spacing
+""",
+        "dark": """
+KAWAII DARK STYLE:
+- Deep purple background (#1A1025) with subtle star pattern
+- Large cream/white course codes (24-28pt, rounded cute font) directly on blocks
+- Muted dark pastel blocks for classes (dusty pink, sage green, muted lavender)
+- Cream colored text for readability
+- Time and venue in 16-18pt
+- Celestial decorations in margins: stars ☆, moons ☾, sparkles ✦
+- Small emoji touches (moon 🌙, stars ⭐, clouds ☁️)
+- Soft glowing effects on class blocks like fairy lights
+- Flat timetable grid layout
+- Thin glowing divider lines
+- Dreamy, cozy night aesthetic
+- Night-mode bullet journal style planner
+- Each block has subtle inner glow
+- NO card UI - just glowing blocks in grid
+- Generous spacing for kawaii aesthetic
+- Weekly schedule header with stars
+""",
+    },
 }
 
 
-PROMPT_TEMPLATE = """Generate a {style_name} horizontal phone wallpaper featuring a weekly class timetable.
+def format_schedule_data(enriched_schedule: Any) -> str:
+    """
+    Format enriched schedule data into a readable text description for Imagen.
 
-## Timetable Data
-{timetable_grid}
+    Args:
+        enriched_schedule: Enriched schedule data with day, time, venue info
 
-## Design Requirements
-- Orientation: HORIZONTAL (landscape mode)
-- Aspect ratio: {aspect_ratio}
-- Resolution: High quality, suitable for phone wallpaper
-- Grid layout: 5 columns (Mon, Tue, Wed, Thu, Fri) with hourly time rows
-- Each class block displays: Module Code, Lesson Type (abbreviated), Venue
-- Include a title header like "My Semester Timetable" or "Weekly Schedule"
+    Returns:
+        Formatted text describing the schedule
+    """
+    # Map abbreviated lesson types to readable full names
+    LESSON_TYPE_NAMES = {
+        "LEC": "Lecture",
+        "TUT": "Tutorial",
+        "LAB": "Laboratory",
+        "REC": "Recitation",
+        "SEC": "Sectional",
+        "SEM": "Seminar",
+        "DLEC": "Design Lecture",
+        "PLEC": "Packaged Lecture",
+        "PTUT": "Packaged Tutorial",
+        "WS": "Workshop",
+    }
+    
+    # Map different day formats to standard names
+    DAY_NAMES = {
+        "Monday": "Monday", "Mon": "Monday", "M": "Monday", "1": "Monday",
+        "Tuesday": "Tuesday", "Tue": "Tuesday", "T": "Tuesday", "2": "Tuesday",
+        "Wednesday": "Wednesday", "Wed": "Wednesday", "W": "Wednesday", "3": "Wednesday",
+        "Thursday": "Thursday", "Thu": "Thursday", "Th": "Thursday", "4": "Thursday",
+        "Friday": "Friday", "Fri": "Friday", "F": "Friday", "5": "Friday",
+        "Saturday": "Saturday", "Sat": "Saturday", "S": "Saturday", "6": "Saturday",
+        "Sunday": "Sunday", "Sun": "Sunday", "U": "Sunday", "7": "Sunday",
+    }
+    
+    if not enriched_schedule:
+        return "No schedule data available"
 
-## Style: {style_name}
-{style_description}
+    schedule_lines = ["Schedule:"]
+    schedule_lines.append("")
 
-## Layout Constraints (iPhone Safe Zones)
-- Leave margins on all edges for iPhone UI elements
-- Top-center area should be minimal (Dynamic Island safe zone)
-- Use legible fonts with strong contrast against background
-- Color-code classes by module for easy identification
-- Days of week clearly labeled at top of each column
-- Time slots clearly labeled on left side
+    # Group lessons by day for better readability
+    days_of_week = [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+    ]
+    lessons_by_day: Dict[str, List[tuple[str, Any]]] = {day: [] for day in days_of_week}
 
-## Content Rules
-- DO NOT include exam dates or schedules
-- DO NOT include week numbers inside class blocks
-- DO NOT add any text outside the timetable except the title
-- Keep class block text minimal: just module code, type, and venue
-- Empty time slots should be visually distinct but not distracting
-"""
+    for module_code, lessons in enriched_schedule.items():
+        for lesson in lessons:
+            day_raw = lesson.get("day", "TBA")
+            # Normalize day format
+            day = DAY_NAMES.get(str(day_raw), day_raw)
+            
+            if day in lessons_by_day:
+                lessons_by_day[day].append((module_code, lesson))
+
+    # Format by day
+    for day in days_of_week:
+        day_lessons = lessons_by_day[day]
+        if not day_lessons:
+            continue
+
+        schedule_lines.append(f"**{day}:**")
+        for module_code, lesson in day_lessons:
+            # Format time: "1000" -> "10:00"
+            start_time = lesson.get("startTime", "TBA")
+            end_time = lesson.get("endTime", "TBA")
+
+            if start_time != "TBA" and len(start_time) == 4:
+                start_time = f"{start_time[:2]}:{start_time[2:]}"
+            if end_time != "TBA" and len(end_time) == 4:
+                end_time = f"{end_time[:2]}:{end_time[2:]}"
+
+            venue = lesson.get("venue", "TBA")
+            lesson_type_abbr = lesson.get("lessonType", "")
+            # Convert abbreviated type to readable name
+            lesson_type = LESSON_TYPE_NAMES.get(lesson_type_abbr, lesson_type_abbr)
+
+            schedule_lines.append(
+                f"  - {module_code} {lesson_type} - {start_time}-{end_time} @ {venue}"
+            )
+
+        schedule_lines.append("")
+
+    return "\n".join(schedule_lines)
 
 
 def build_prompt(
-    timetable_grid: str,
-    design_style: DesignStyleType = "minimal",
+    design_style: DesignStyleType = "minimalist",
     theme: ThemeType = "light",
-    aspect_ratio: str = "16:9"
+    aspect_ratio: str = "9:16",
+    enriched_schedule: Optional[Any] = None,
 ) -> str:
     """
-    Build the full prompt for image generation.
-    
+    Build the text-to-image prompt for Imagen to generate timetable wallpaper.
+
     Args:
-        timetable_grid: Markdown table of the timetable
-        design_style: One of "minimal", "gradient", "neon", "pastel", "glass", "retro"
+        design_style: One of the supported design styles
         theme: Either "light" or "dark"
-        aspect_ratio: Aspect ratio string (e.g., "16:9", "19.5:9")
-    
+        aspect_ratio: Target aspect ratio for the wallpaper (e.g., "9:16")
+        enriched_schedule: Enriched schedule data with day, time, venue info
+
     Returns:
-        Complete prompt string for Imagen 3
+        Complete prompt string for Imagen image generation
     """
-    # Get style description for the combination
-    style_desc = STYLE_DESCRIPTIONS.get(design_style, STYLE_DESCRIPTIONS["minimal"])
+    style_desc = STYLE_DESCRIPTIONS.get(design_style, STYLE_DESCRIPTIONS["minimalist"])
     style_description = style_desc.get(theme, style_desc["light"])
-    
-    # Build style name
-    style_name = f"{design_style.capitalize()} ({theme} mode)"
-    
-    return PROMPT_TEMPLATE.format(
+
+    style_name = f"{design_style.capitalize()} {theme.capitalize()}"
+
+    # Format schedule data if provided
+    if enriched_schedule:
+        schedule_data = format_schedule_data(enriched_schedule)
+    else:
+        schedule_data = "No schedule data provided"
+
+    return GENERATION_PROMPT_TEMPLATE.format(
         style_name=style_name,
-        timetable_grid=timetable_grid,
         style_description=style_description,
-        aspect_ratio=aspect_ratio
+        aspect_ratio=aspect_ratio,
+        schedule_data=schedule_data,
     )
