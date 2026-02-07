@@ -1,0 +1,19 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "modpocket-core"
+version = "0.1.0"
+description = "Core functionality for ModPocket"
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [
+    {name = "ModPocket Team"}
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "ruff>=0.1.0",
+]
