@@ -31,7 +31,7 @@ CRITICAL LAYOUT:
 STYLE: {style_name}
 {style_description}
 
-REQUIREMENTS: Grid layout, readable typography, color-coded modules, no device frames, no invented data, each row represents a day (Monday > Tuesday > Wednesday > Thursday > Friday), ordered in chronological order (day followed by timeslot)
+REQUIREMENTS: Grid layout, readable typography, color-coded modules, no device frames, no invented data
 """
 
 # ---------------------------------------------------------------------------
